@@ -1,0 +1,105 @@
+{
+  "info": {
+    "_postman_id": "settlein-api-collection",
+    "name": "SettleIn API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Auth - Signup",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"test@company.com\",\n  \"name\": \"Test User\",\n  \"password\": \"password123\"\n}"
+        },
+        "url": {"raw": "{{base_url}}/api/auth/signup", "host": ["{{base_url}}"], "path": ["api", "auth", "signup"]}
+      }
+    },
+    {
+      "name": "Auth - Verify OTP",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"test@company.com\",\n  \"otp\": \"123456\"\n}"
+        },
+        "url": {"raw": "{{base_url}}/api/auth/verify-otp", "host": ["{{base_url}}"], "path": ["api", "auth", "verify-otp"]}
+      }
+    },
+    {
+      "name": "Auth - Complete Profile",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"phone\": \"9999999999\",\n  \"address\": \"Bangalore\",\n  \"profile_pic\": \"https://pic.url\"\n}"
+        },
+        "url": {"raw": "{{base_url}}/api/auth/complete-profile", "host": ["{{base_url}}"], "path": ["api", "auth", "complete-profile"]}
+      }
+    },
+    {
+      "name": "Product - Create",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Authorization", "value": "Bearer {{jwt}}"},
+          {"key": "Content-Type", "value": "application/json"}
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Microwave\",\n  \"description\": \"Brand new\",\n  \"price\": 5000,\n  \"images\": [\"url1\", \"url2\"]\n}"
+        },
+        "url": {"raw": "{{base_url}}/api/products", "host": ["{{base_url}}"], "path": ["api", "products"]}
+      }
+    },
+    {
+      "name": "Property - Create",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Authorization", "value": "Bearer {{jwt}}"},
+          {"key": "Content-Type", "value": "application/json"}
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"2BHK Flat\",\n  \"description\": \"Near Metro\",\n  \"price\": 15000,\n  \"location\": \"Koramangala\",\n  \"images\": [\"img1\", \"img2\"]\n}"
+        },
+        "url": {"raw": "{{base_url}}/api/properties", "host": ["{{base_url}}"], "path": ["api", "properties"]}
+      }
+    },
+    {
+      "name": "Chat - Start",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Authorization", "value": "Bearer {{jwt}}"},
+          {"key": "Content-Type", "value": "application/json"}
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"postId\": \"product-or-property-id\",\n  \"postType\": \"PRODUCT\"\n}"
+        },
+        "url": {"raw": "{{base_url}}/api/chat/start", "host": ["{{base_url}}"], "path": ["api", "chat", "start"]}
+      }
+    },
+    {
+      "name": "Chat - Send Message",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Authorization", "value": "Bearer {{jwt}}"},
+          {"key": "Content-Type", "value": "application/json"}
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"chatId\": \"chat-id\",\n  \"message\": \"Is it still available?\"\n}"
+        },
+        "url": {"raw": "{{base_url}}/api/chat/send", "host": ["{{base_url}}"], "path": ["api", "chat", "send"]}
+      }
+    }
+  ]
+}
