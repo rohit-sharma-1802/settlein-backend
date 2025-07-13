@@ -2,7 +2,7 @@ package com.settlein.backend.service;
 
 import com.settlein.backend.dto.ProductRequest;
 import com.settlein.backend.entity.MasterUser;
-import com.settlein.backend.entity.Product;
+import com.settlein.backend.entity.Products;
 import com.settlein.backend.repository.MasterUserRepository;
 import com.settlein.backend.repository.ProductRepository;
 import com.settlein.backend.util.JwtUtil;
@@ -29,14 +29,14 @@ public class ProductService {
     @Autowired
     private JwtUtil jwtUtil;
 
-    public Product createProduct(ProductRequest request, List<MultipartFile> files, String authHeader) {
+    public Products createProduct(ProductRequest request, List<MultipartFile> files, String authHeader) {
         String token = authHeader.replace("Bearer ", "");
         String email = jwtUtil.extractUsername(token);
         MasterUser user = userRepo.findByEmail(email).orElseThrow();
 
         List<String> urls = uploadService.uploadImages(files);
 
-        Product product = new Product();
+        Products product = new Products();
         product.setUserId(user.getId());
         product.setCompany(user.getCompany());
         product.setLocation(request.getLocation());
@@ -49,21 +49,21 @@ public class ProductService {
         return productRepo.save(product);
     }
 
-    public Page<Product> getAll(String authHeader, int page, int size) {
+    public Page<Products> getAll(String authHeader, int page, int size) {
         String company = getCompanyFromToken(authHeader);
         Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
         return productRepo.findByCompanyOrderByIdDesc(company, pageable);
     }
 
-    public Product getById(UUID id) {
+    public Products getById(UUID id) {
         return productRepo.findById(id).orElseThrow();
     }
 
-    public Page<Product> search(String authHeader,
-                                Optional<String> keyword,
-                                Optional<Double> minPrice,
-                                Optional<Double> maxPrice,
-                                int page, int size) {
+    public Page<Products> search(String authHeader,
+                                 Optional<String> keyword,
+                                 Optional<Double> minPrice,
+                                 Optional<Double> maxPrice,
+                                 int page, int size) {
 
         return productRepo.findAll((root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();

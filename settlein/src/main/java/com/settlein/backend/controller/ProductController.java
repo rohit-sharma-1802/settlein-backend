@@ -29,8 +29,8 @@ public class ProductController {
     @GetMapping
     public ResponseEntity<?> getProducts(
             @RequestHeader("Authorization") String authHeader,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(name="page",defaultValue = "0") int page,
+            @RequestParam(name="size",defaultValue = "10") int size
     ) {
         return ResponseEntity.ok(productService.getAll(authHeader, page, size));
     }
@@ -43,11 +43,11 @@ public class ProductController {
     @GetMapping("/search")
     public ResponseEntity<?> searchProducts(
             @RequestHeader("Authorization") String authHeader,
-            @RequestParam Optional<String> keyword,
-            @RequestParam Optional<Double> minPrice,
-            @RequestParam Optional<Double> maxPrice,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(name = "keyword") Optional<String> keyword,
+            @RequestParam(name = "minPrice") Optional<Double> minPrice,
+            @RequestParam(name = "maxPrice") Optional<Double> maxPrice,
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "10") int size
     ) {
         return ResponseEntity.ok(
                 productService.search(authHeader, keyword, minPrice, maxPrice, page, size)

@@ -12,9 +12,9 @@ import java.util.*;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Product {
+public class Products {
     @Id @GeneratedValue
-    private Long id;
+    private UUID id;
     private String title;
     private String description;
     private Double price;

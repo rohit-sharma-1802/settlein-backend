@@ -20,5 +20,4 @@ public class CompleteProfileRequest {
     private String profilePic;
     private String email;
     private String password;
-    private List<String> properties_image_urls;
 }

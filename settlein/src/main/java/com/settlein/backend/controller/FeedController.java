@@ -7,7 +7,6 @@ import org.springframework.web.bind.annotation.*;
 import com.settlein.backend.service.FeedService;
 
 import java.nio.file.AccessDeniedException;
-import java.security.Principal;
 import java.util.UUID;
 
 @RestController
@@ -18,8 +17,8 @@ public class FeedController {
     private FeedService feedService;
 
     @PostMapping
-    public ResponseEntity<?> createFeed(@RequestBody FeedRequest request, Principal principal) {
-        return ResponseEntity.ok(feedService.createFeed(principal.getName(), request));
+    public ResponseEntity<?> createFeed(@RequestBody FeedRequest request) {
+        return ResponseEntity.ok(feedService.createFeed(request));
     }
 
     @GetMapping
@@ -28,12 +27,12 @@ public class FeedController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> getFeed(@PathVariable UUID id) {
+    public ResponseEntity<?> getFeed(@PathVariable("id") UUID id) {
         return ResponseEntity.ok(feedService.getById(id));
     }
 
     @PutMapping("/{id}/resolve")
-    public ResponseEntity<?> markResolved(@PathVariable UUID id, Principal principal) throws AccessDeniedException {
-        return ResponseEntity.ok(feedService.markAsResolved(principal.getName(), id));
+    public ResponseEntity<?> markResolved(@PathVariable("id") UUID id, @RequestBody FeedRequest request) throws AccessDeniedException {
+        return ResponseEntity.ok(feedService.markAsResolved(request.getUserId(), id));
     }
 }

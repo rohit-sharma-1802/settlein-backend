@@ -23,8 +23,8 @@ public class FeedService {
     @Autowired
     private MasterUserRepository userRepo;
 
-    public Feed createFeed(String email, FeedRequest request) {
-        MasterUser user = userRepo.findByEmail(email).orElseThrow();
+    public Feed createFeed(FeedRequest request) {
+        MasterUser user = userRepo.findById(request.getUserId()).orElseThrow();
         Feed feed = new Feed();
         feed.setUser(user);
         feed.setDescription(request.getDescription());
@@ -38,10 +38,11 @@ public class FeedService {
     public Feed getById(UUID id) {
         return feedRepo.findById(id).orElseThrow();
     }
-    public Feed markAsResolved(String email, UUID feedId) throws AccessDeniedException {
+
+    public Feed markAsResolved(UUID userId, UUID feedId) throws AccessDeniedException {
         Feed feed = feedRepo.findById(feedId).orElseThrow(() -> new RuntimeException("entity.entity.Feed not found"));
 
-        if (!feed.getUser().getEmail().equals(email)) {
+        if (!feed.getUser().getId().equals(userId)) {
             throw new AccessDeniedException("Only the feed creator can mark it as resolved.");
         }
 
