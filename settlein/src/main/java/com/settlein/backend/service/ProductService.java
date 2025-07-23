@@ -42,7 +42,6 @@ public class ProductService {
         product.setLocation(request.getLocation());
         product.setTitle(request.getTitle());
         product.setCategory(request.getCategory());
-        product.setUserId(request.getUserId());
         product.setDescription(request.getDescription());
         product.setPrice(request.getPrice());
         product.setImageUrls(urls);

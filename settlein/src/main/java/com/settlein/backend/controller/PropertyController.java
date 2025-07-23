@@ -1,5 +1,7 @@
 package com.settlein.backend.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.settlein.backend.dto.ProductRequest;
 import com.settlein.backend.dto.PropertyRequest;
 import com.settlein.backend.entity.Properties;
 import com.settlein.backend.service.PropertyService;
@@ -18,20 +20,27 @@ public class PropertyController {
 
     @Autowired
     private PropertyService propertyService;
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @PostMapping
-    public ResponseEntity<Properties> createProperty(
-            @RequestPart("property") PropertyRequest request,
+    public ResponseEntity<?> createProperty(
+            @RequestPart("property") String request,
             @RequestPart("images") List<MultipartFile> files,
             @RequestHeader("Authorization") String authHeader) {
-        return ResponseEntity.ok(propertyService.createProperty(request, files, authHeader));
+        try {
+            PropertyRequest propertyRequest = objectMapper.readValue(request, PropertyRequest.class);
+            return ResponseEntity.ok(propertyService.createProperty(propertyRequest, files, authHeader));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @GetMapping
     public ResponseEntity<?> getAll(
             @RequestHeader("Authorization") String authHeader,
-            @RequestParam(name="page",defaultValue = "0") int page,
-            @RequestParam(name="size",defaultValue = "10") int size) {
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "10") int size) {
         return ResponseEntity.ok(propertyService.getAll(authHeader, page, size));
     }
 

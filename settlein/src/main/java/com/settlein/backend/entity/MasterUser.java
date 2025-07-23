@@ -23,7 +23,7 @@ public class MasterUser {
     private String name;
     private String email;
     private String password;
-
+    private String Address;
     private boolean isVerified;
     private String phone;
     private String company;

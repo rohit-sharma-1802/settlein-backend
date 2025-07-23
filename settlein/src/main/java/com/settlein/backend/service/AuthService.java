@@ -4,9 +4,9 @@ import com.settlein.backend.dto.CompleteProfileRequest;
 import com.settlein.backend.dto.LoginRequest;
 import com.settlein.backend.dto.SignupRequest;
 import com.settlein.backend.dto.VerifyOtpRequest;
-import com.settlein.backend.entity.Company;
 import com.settlein.backend.entity.MasterUser;
 import com.settlein.backend.repository.MasterUserRepository;
+import com.settlein.backend.util.ImageUploadUtil;
 import com.settlein.backend.util.JwtUtil;
 import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +14,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -30,6 +32,9 @@ public class AuthService {
 
     @Autowired
     private JwtUtil jwtUtil;
+
+    @Autowired
+    private ImageUploadUtil imageUploadUtil;
 
     public ResponseEntity<?> sendOtpRequest(@RequestBody SignupRequest req) {
         Optional<MasterUser> userOpt = userRepo.findByEmail(req.getEmail());
@@ -70,26 +75,33 @@ public class AuthService {
         return ResponseEntity.ok(response);
     }
 
-    public ResponseEntity<?> completeProfile(@RequestBody CompleteProfileRequest req, String authHeader) {
-        String token = authHeader.replace("Bearer ", "");
-        String email = jwtUtil.extractUsername(token);
+    public ResponseEntity<?> completeProfileWithImage(CompleteProfileRequest request, MultipartFile image, String authHeader) {
+        String jwt = authHeader.substring(7);
+        String email = jwtUtil.extractUsername(jwt);
 
-        Optional<MasterUser> userOpt = userRepo.findByEmail(email);
-        if (userOpt.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+        MasterUser user = userRepo.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        user.setName(request.getName());
+        user.setPhone(request.getPhone());
+        user.setAddress(request.getAddress());
+        user.setCompany(jwtUtil.extractCompany(jwt));
+        user.setPassword(BCrypt.hashpw(request.getPassword(), BCrypt.gensalt()));
+
+        if (image != null) {
+            try {
+                String imageUrl = imageUploadUtil.uploadImage(image);
+                System.out.println(imageUrl);
+                user.setProfilePicUrl(imageUrl);
+            } catch (IOException e) {
+                return ResponseEntity.status(500).body("Image upload failed: " + e.getMessage());
+            }
         }
 
-        MasterUser user = userOpt.get();
-        user.setName(req.getName());
-        user.setPhone(req.getPhone());
-        user.setPassword(BCrypt.hashpw(req.getPassword(), BCrypt.gensalt())); // Save password now
-
         userRepo.save(user);
-        Map<String, Object> response = new HashMap<>();
-        response.put("id",user.getId());
-        response.put("message", "Profile has been completed successfully");
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok("Profile completed successfully");
     }
+
 
     public ResponseEntity<?> login(@RequestBody LoginRequest req) {
         Optional<MasterUser> userOpt = userRepo.findByEmail(req.getEmail());

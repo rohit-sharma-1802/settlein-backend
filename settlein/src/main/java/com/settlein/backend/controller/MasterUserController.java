@@ -1,5 +1,7 @@
 package com.settlein.backend.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.settlein.backend.dto.CompleteProfileRequest;
 import com.settlein.backend.dto.UpdateFcmTokenRequest;
 import com.settlein.backend.dto.UserUpdateRequest;
 import com.settlein.backend.entity.MasterUser;
@@ -8,8 +10,10 @@ import com.settlein.backend.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.security.Principal;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/user")
@@ -21,6 +25,9 @@ public class MasterUserController {
     @Autowired
     private JwtUtil jwtUtil;
 
+    @Autowired
+    private ObjectMapper objectMapper;
+
     // ✅ Get current logged-in user info
     @GetMapping("/me")
     public ResponseEntity<MasterUser> me(@RequestHeader("Authorization") String authHeader) {
@@ -31,12 +38,16 @@ public class MasterUserController {
 
     // ✅ Update user profile
     @PutMapping("/update")
-    public ResponseEntity<MasterUser> updateProfile(
-            @RequestHeader("Authorization") String authHeader,
-            @RequestBody UserUpdateRequest req) {
-        String jwt = authHeader.substring(7); // Remove "Bearer "
-        MasterUser updatedUser = masterUserService.updateProfile(jwt, req);
-        return ResponseEntity.ok(updatedUser);
+    public ResponseEntity<?> updateProfile(
+            @RequestPart(name = "data", required = false) String request,
+            @RequestPart(name = "image", required = false) MultipartFile profileImage,
+            @RequestHeader("Authorization") String authHeader) {
+        try {
+            UserUpdateRequest userUpdateRequest = objectMapper.readValue(request, UserUpdateRequest.class);
+            return masterUserService.updateProfile(authHeader, userUpdateRequest, profileImage);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     // ✅ Update FCM token using principal (email from Spring Security)

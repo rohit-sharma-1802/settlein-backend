@@ -3,13 +3,12 @@ package com.settlein.backend.entity;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
-import jakarta.persistence.PrePersist;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -17,14 +16,13 @@ import java.util.UUID;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class ChatMessage {
+public class Message {
     @Id
     @GeneratedValue
     private UUID id;
 
-    private UUID chatId;
+    private UUID chatRoomId;
     private UUID senderId;
-    private String message;
-    private Timestamp sentOn;
-    
+    private String content;
+    private LocalDateTime timestamp;
 }

@@ -6,11 +6,13 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.UUID;
+
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class ChatMessageRequest {
-    private UUID chatId;
-    private String message;
+    private UUID chatRoomId;
+    private UUID senderId;
+    private String content;
 }

@@ -4,10 +4,16 @@ import com.settlein.backend.dto.CompleteProfileRequest;
 import com.settlein.backend.dto.UserUpdateRequest;
 import com.settlein.backend.entity.MasterUser;
 import com.settlein.backend.repository.MasterUserRepository;
+import com.settlein.backend.util.ImageUploadUtil;
 import com.settlein.backend.util.JwtUtil;
+import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
 import javax.sql.DataSource;
+import java.io.IOException;
 
 @Service
 public class MasterUserService {
@@ -20,16 +26,8 @@ public class MasterUserService {
     @Autowired
     private JwtUtil jwtUtil;
 
-    public MasterUser updateUserDetails(CompleteProfileRequest req) {
-        // Assuming JWT token or email is available in request
-        MasterUser user = userRepo.findByEmail(req.getEmail())
-                .orElseThrow(() -> new RuntimeException("entity.entity.User not found"));
-
-        user.setPhone(req.getPhone());
-        user.setProfilePicUrl(req.getProfilePic());
-
-        return userRepo.save(user);
-    }
+    @Autowired
+    private ImageUploadUtil imageUploadUtil;
 
     // Get currently authenticated user using JWT
     public MasterUser getCurrentUser(String jwt) {
@@ -39,12 +37,31 @@ public class MasterUserService {
     }
 
     // Update current user profile
-    public MasterUser updateProfile(String jwt, UserUpdateRequest req) {
-        MasterUser user = getCurrentUser(jwt);
-        user.setName(req.getName());
-        user.setPhone(req.getPhone());
-        user.setProfilePicUrl(req.getProfilePic());
-        return userRepo.save(user);
+    public ResponseEntity<?> updateProfile(String authHeader, UserUpdateRequest request, MultipartFile profileImage) {
+        String jwt = authHeader.substring(7);
+        String email = jwtUtil.extractUsername(jwt);
+
+        MasterUser user = userRepo.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        user.setName(request.getName());
+        user.setPhone(request.getPhone());
+        user.setAddress(request.getAddress());
+        user.setCompany(jwtUtil.extractCompany(jwt));
+        user.setPassword(BCrypt.hashpw(request.getPassword(), BCrypt.gensalt()));
+
+        if (profileImage != null) {
+            try {
+                String imageUrl = imageUploadUtil.uploadImage(profileImage);
+                System.out.println(imageUrl);
+                user.setProfilePicUrl(imageUrl);
+            } catch (IOException e) {
+                return ResponseEntity.status(500).body("Image upload failed: " + e.getMessage());
+            }
+        }
+
+        userRepo.save(user);
+        return ResponseEntity.ok("Profile updated successfully");
     }
 
     // Get user by email

@@ -2,57 +2,79 @@ package com.settlein.backend.service;
 
 
 import com.settlein.backend.dto.ChatMessageRequest;
-import com.settlein.backend.dto.ChatStartRequest;
-import com.settlein.backend.entity.Chat;
-import com.settlein.backend.entity.ChatMessage;
-import com.settlein.backend.entity.MasterUser;
+import com.settlein.backend.entity.ChatRoom;
+import com.settlein.backend.entity.Message;
+import com.settlein.backend.repository.ChatRoomRepository;
+import com.settlein.backend.repository.MessageRepository;
+import com.settlein.backend.repository.ProductRepository;
+import com.settlein.backend.repository.PropertyRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import com.settlein.backend.repository.ChatMessageRepository;
-import com.settlein.backend.repository.ChatRepository;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class ChatService {
+
     @Autowired
-    private ChatRepository chatRepo;
-    @Autowired private ChatMessageRepository messageRepo;
-    @Autowired private MasterUserService masterUserService;
+    private ChatRoomRepository chatRoomRepo;
+    @Autowired
+    private MessageRepository messageRepo;
+    @Autowired
+    private ProductRepository productRepo;
+    @Autowired
+    private PropertyRepository propertyRepo;
 
-    public Chat start(String jwt, ChatStartRequest req) {
-        MasterUser sender = masterUserService.getCurrentUser(jwt);
+    public ChatRoom initiateChat(UUID interestedUserId, UUID ownerUserId, String type, UUID itemId) {
+        Optional<ChatRoom> existingChat = chatRoomRepo
+                .findByUser1IdAndUser2IdAndTypeAndItemId(interestedUserId, ownerUserId, type, itemId);
 
-        // Mock: assume receiver is owner of post
-        UUID receiverId = UUID.randomUUID(); // Replace with real post owner ID
+        if (existingChat.isPresent()) return existingChat.get();
 
-        Chat chat = new Chat();
-        chat.setPostId(req.getPostId());
-        chat.setPostType(req.getPostType());
-        chat.setSenderId(sender.getId());
-        chat.setReceiverId(receiverId);
-        return chatRepo.save(chat);
+        ChatRoom chatRoom = new ChatRoom();
+        chatRoom.setUser1Id(interestedUserId);
+        chatRoom.setUser2Id(ownerUserId);
+        chatRoom.setType(type);
+        chatRoom.setItemId(itemId);
+        chatRoom.setCreatedAt(LocalDateTime.now());
+
+        chatRoom = chatRoomRepo.save(chatRoom);
+
+        Message msg = new Message();
+        msg.setChatRoomId(chatRoom.getId());
+        msg.setSenderId(interestedUserId);
+        msg.setContent("Hi, I'm interested in this " + type + ".");
+        msg.setTimestamp(LocalDateTime.now());
+        messageRepo.save(msg);
+        return chatRoom;
     }
 
-    public ChatMessage send(String jwt, ChatMessageRequest req) {
-        MasterUser sender = masterUserService.getCurrentUser(jwt);
-        ChatMessage msg = new ChatMessage();
-        msg.setChatId(req.getChatId());
-        msg.setMessage(req.getMessage());
-        msg.setSenderId(sender.getId());
-        return messageRepo.save(msg);
-    }
-
-    public List<Chat> getAllChats(String jwt, String type) {
-        MasterUser user = masterUserService.getCurrentUser(jwt);
-        if (type != null) {
-            return chatRepo.findAllBySenderIdOrReceiverIdAndPostType(user.getId(), user.getId(), type);
+    public Object getItemDetails(String type, UUID itemId) {
+        if ("PRODUCT".equalsIgnoreCase(type)) {
+            return productRepo.findById(itemId).orElse(null);
+        } else if ("PROPERTY".equalsIgnoreCase(type)) {
+            return propertyRepo.findById(itemId).orElse(null);
         }
-        return chatRepo.findAllBySenderIdOrReceiverId(user.getId(), user.getId());
+        return null;
     }
 
-    public List<ChatMessage> getMessages(UUID chatId) {
-        return messageRepo.findAllByChatIdOrderBySentOnAsc(chatId);
+    public List<Message> getMessages(UUID chatRoomId) {
+        return messageRepo.findAll()
+                .stream()
+                .filter(msg -> msg.getChatRoomId().equals(chatRoomId))
+                .collect(Collectors.toList());
+    }
+
+    public Message saveMessage(ChatMessageRequest request) {
+        Message message = new Message();
+        message.setChatRoomId(request.getChatRoomId());
+        message.setSenderId(request.getSenderId());
+        message.setContent(request.getContent());
+        message.setTimestamp(LocalDateTime.now());
+        return messageRepo.save(message);
     }
 }
