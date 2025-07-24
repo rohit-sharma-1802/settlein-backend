@@ -16,8 +16,8 @@ build/
 bin/
 !**/src/main/**/bin/
 !**/src/test/**/bin/
-!**/src/main/resources/firebase
-!**/src/main/resources/application.properties
+settlein/src/main/resources/firebase/settlein-notification.json
+settlein/src/main/resources/application.properties
 ### IntelliJ IDEA ###
 .idea
 *.iws
