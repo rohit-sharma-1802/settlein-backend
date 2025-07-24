@@ -16,7 +16,7 @@ public class FlywayConfig {
         Flyway flyway = Flyway.configure()
                 .dataSource(dataSource)
                 .schemas(schemaName)
-                .locations("classpath:migration") // V1__init.sql etc.
+                .locations("classpath:migration")
                 .load();
         flyway.migrate();
     }
